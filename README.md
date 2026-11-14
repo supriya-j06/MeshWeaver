@@ -1,37 +1,52 @@
 # MeshWeaver
-A decentralized peer-to-peer asynchronous task broker built using Python, asyncio and Kademlia DHT.
 
+**A Zero-Dependency Peer-to-Peer Asynchronous Task Broker built with Python.**
 
+MeshWeaver is a decentralized task execution project that enables connected peer nodes to exchange and execute tasks without depending on centralized message brokers such as Redis or RabbitMQ.
 
-# MeshWeaver
-### Zero-Dependency P2P Async Task Broker
+## Overview
 
-**Domain:** Distributed Systems & Edge Computing
+The project uses asynchronous networking to establish peer communication, transfer serialized Python functions, execute tasks on a receiving peer, and return results to the requester.
 
-MeshWeaver is a decentralized peer-to-peer asynchronous task broker developed using Python. It aims to enable multiple peer nodes to communicate, exchange tasks and execute workloads without depending on a centralized message broker.
+## Features
 
-The project explores asynchronous networking, distributed task execution, task serialization, peer discovery and fault tolerance.
+- UDP-based peer communication using PING/PONG messages.
+- Asynchronous networking using Python `asyncio`.
+- Function serialization using `cloudpickle`.
+- TCP-based task transfer between peer processes.
+- Remote task execution and result transfer.
+- Basic detection of unavailable peers.
 
-## Project Objectives
-
-- Establish communication between independent peer nodes.
-- Implement asynchronous networking using Python asyncio.
-- Transfer Python tasks between peers.
-- Execute received tasks remotely.
-- Build a decentralized task distribution system.
-- Explore fault tolerance and secure peer communication.
-
-## Technology Stack
+## Tech Stack
 
 | Technology | Purpose |
 |---|---|
-| Python | Core development |
-| asyncio | Asynchronous programming |
-| UDP / TCP Sockets | Peer communication |
-| cloudpickle | Task serialization |
-| Rich | Terminal dashboard (planned) |
-| psutil | CPU/RAM monitoring (planned) |
-| Kademlia DHT | Peer discovery (planned) |
+| Python | Core programming language |
+| asyncio | Asynchronous networking |
+| UDP | Peer communication |
+| TCP | Task transfer |
+| cloudpickle | Function serialization |
+| Git & GitHub | Version control |
+
+## Architecture
+
+```text
+       Client Peer
+            |
+            | Serialize Task
+            v
+       TCP Connection
+            |
+            v
+       Receiving Peer
+            |
+            | Execute Task
+            v
+       Return Result
+            |
+            v
+       Client Peer
+```
 
 ## Project Structure
 
@@ -51,72 +66,34 @@ MeshWeaver/
 │   └── test_task_transfer.py
 │
 ├── tests/
-│
-├── venv/
-│
-├── main.py
-├── requirements.txt
 ├── README.md
+├── requirements.txt
 └── .gitignore
 ```
 
-## Implemented Features – Week 1
-
-### 1. Asynchronous UDP Networking
-
-- Implemented an asynchronous UDP server using asyncio.
-- Developed a UDP client for peer communication.
-- Implemented PING and PONG message exchange.
-- Successfully tested communication between two Python processes.
-
-### 2. Task Serialization
-
-- Implemented Python function serialization using cloudpickle.
-- Serialized functions along with their arguments.
-- Implemented deserialization and execution of serialized tasks.
-- Tested arithmetic operations, string functions and multiple arguments.
-
-### 3. Remote Task Execution
-
-- Implemented TCP socket communication between peers.
-- Transferred serialized tasks between sender and receiver.
-- Executed received tasks on the receiving peer.
-- Returned execution results to the requesting peer.
-
-### 4. Basic Connection Error Handling
-
-- Tested successful task transfer.
-- Tested communication with an unavailable peer.
-- Verified connection failure detection.
-
-## Installation and Setup
+## Getting Started
 
 ### Prerequisites
 
 - Python 3.10 or later
 - Git
-- Visual Studio Code
 
-### Step 1: Clone the repository
+### Installation
+
+**1. Clone the repository**
 
 ```bash
 git clone https://github.com/supriya-j06/MeshWeaver.git
 cd MeshWeaver
 ```
 
-### Step 2: Switch to the development branch
-
-```bash
-git switch supriya-dev
-```
-
-### Step 3: Create a virtual environment
+**2. Create a virtual environment**
 
 ```bash
 python -m venv venv
 ```
 
-### Step 4: Activate the environment
+**3. Activate the virtual environment**
 
 Windows PowerShell:
 
@@ -124,35 +101,37 @@ Windows PowerShell:
 .\venv\Scripts\Activate.ps1
 ```
 
-### Step 5: Install dependencies
+**4. Install dependencies**
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 ## Running the Project
 
-### UDP Server
+### 1. UDP Peer Communication
+
+Start the server:
 
 ```bash
 python -m meshweaver.node server
 ```
 
-### UDP Client
-
-Open another terminal:
+Run the client in another terminal:
 
 ```bash
 python -m meshweaver.node client
 ```
 
-### Test Task Serialization
+The client sends a PING message and receives a PONG response.
+
+### 2. Function Serialization Test
 
 ```bash
-python -m examples.test_serialization
+python examples/test_serialization.py
 ```
 
-### Test Remote Task Execution
+### 3. TCP Task Transfer Test
 
 Start the task server:
 
@@ -160,45 +139,40 @@ Start the task server:
 python -c "import asyncio; from meshweaver.task_network import start_task_server; asyncio.run(start_task_server())"
 ```
 
-In another terminal:
+Run the test in another terminal:
 
 ```bash
-python -m examples.test_task_transfer
+python examples/test_task_transfer.py
 ```
 
-## Week 1 Testing Results
+## Development Status
 
-| Test Case | Expected Result | Status |
-|---|---|---|
-| UDP server startup | Server starts successfully | Passed |
-| UDP PING/PONG | PONG received | Passed |
-| Function serialization | Function serialized | Passed |
-| Arithmetic execution | Correct result returned | Passed |
-| String function execution | Correct output returned | Passed |
-| Remote task transfer | Result 300 received | Passed |
-| Unavailable peer | Connection failure detected | Passed |
+**Completed:**
+- Basic UDP peer communication.
+- Function serialization and execution.
+- TCP task transfer.
+- Result transfer between peer processes.
+- Basic unavailable-peer handling.
 
-## Future Development
-
-- Kademlia Distributed Hash Table (DHT)
-- Peer discovery and network formation
-- Gossip protocol for CPU/RAM sharing
-- Intelligent task routing
-- Heartbeat monitoring
-- Fault tolerance and task reassignment
-- TLS/SSL communication and cryptographic signatures
-- Live terminal dashboard using Rich
+**Planned:**
+- Kademlia-based peer discovery.
+- CPU and RAM resource sharing.
+- Intelligent task assignment.
+- Heartbeat monitoring.
+- Automatic task reassignment.
+- Secure peer communication.
+- Command-line monitoring dashboard.
 
 ## Security Note
 
-The current task-transfer prototype uses cloudpickle for trusted local testing. Deserializing untrusted data can execute arbitrary code. Authentication, authorization and secure execution controls are required before deployment across untrusted networks.
+MeshWeaver uses `cloudpickle` to deserialize transferred tasks. Deserializing untrusted data can execute arbitrary code. Use this project only with trusted peers in a controlled environment.
 
-## Project Status
+## Contributors
 
-**Current Phase:** Week 1 – Core Networking and Task Serialization
+**Developed by:** Supriya
 
-MeshWeaver is under active development as part of the Advanced Python Engineering internship project at Infotact Solutions.
+**Repository:** [MeshWeaver on GitHub](https://github.com/supriya-j06/MeshWeaver)
 
 ---
 
-**Developed by:** Supriya and Team
+*Building decentralized task execution through asynchronous peer-to-peer communication.*
