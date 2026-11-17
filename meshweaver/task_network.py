@@ -5,6 +5,9 @@ import cloudpickle
 
 MAX_MESSAGE_SIZE = 1024 * 1024
 
+CONNECTION_TIMEOUT = 5
+TASK_TIMEOUT = 10
+
 
 async def receive_data(reader):
     header = await reader.readexactly(4)
@@ -28,8 +31,12 @@ async def handle_peer(reader, writer):
     try:
         print("Peer connected.")
 
+        task_data = await asyncio.wait_for(
+            receive_data(reader),
+            timeout=TASK_TIMEOUT
+        )
+
         # Only accept trusted local test data.
-        task_data = await receive_data(reader)
         task = cloudpickle.loads(task_data)
 
         function = task["function"]
@@ -38,17 +45,28 @@ async def handle_peer(reader, writer):
         result = function(*args)
 
         response = cloudpickle.dumps(result)
-        await send_data(writer, response)
+
+        await asyncio.wait_for(
+            send_data(writer, response),
+            timeout=TASK_TIMEOUT
+        )
 
         print("Task executed successfully.")
         print("Result:", result)
+
+    except asyncio.TimeoutError:
+        print("Task error: Peer communication timed out.")
 
     except Exception as error:
         print("Task error:", error)
 
     finally:
         writer.close()
-        await writer.wait_closed()
+
+        try:
+            await writer.wait_closed()
+        except OSError:
+            pass
 
 
 async def start_task_server():
@@ -65,9 +83,14 @@ async def start_task_server():
 
 
 async def submit_task(host, port, function, *args):
-    reader, writer = await asyncio.open_connection(host, port)
+    writer = None
 
     try:
+        reader, writer = await asyncio.wait_for(
+            asyncio.open_connection(host, port),
+            timeout=CONNECTION_TIMEOUT
+        )
+
         task = {
             "function": function,
             "args": args
@@ -75,13 +98,30 @@ async def submit_task(host, port, function, *args):
 
         serialized_task = cloudpickle.dumps(task)
 
-        await send_data(writer, serialized_task)
+        await asyncio.wait_for(
+            send_data(writer, serialized_task),
+            timeout=TASK_TIMEOUT
+        )
 
-        response = await receive_data(reader)
+        response = await asyncio.wait_for(
+            receive_data(reader),
+            timeout=TASK_TIMEOUT
+        )
+
         result = cloudpickle.loads(response)
 
         return result
 
+    except asyncio.TimeoutError as error:
+        raise TimeoutError(
+            "Connection or task communication timed out."
+        ) from error
+
     finally:
-        writer.close()
-        await writer.wait_closed()
+        if writer is not None:
+            writer.close()
+
+            try:
+                await writer.wait_closed()
+            except OSError:
+                pass
