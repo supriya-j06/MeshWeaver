@@ -39,8 +39,10 @@ class PingClientProtocol(asyncio.DatagramProtocol):
 
         print(f"Received '{message}' from {addr}")
 
-        if not self.response.done():
+        if message == "PONG" and not self.response.done():
             self.response.set_result(message)
+        else:
+            print("Ignoring unexpected UDP response.")
 
 
 async def start_udp_server(host="127.0.0.1", port=8888):
