@@ -18,8 +18,8 @@ def generate_node_id():
 class Peer:
     """Stores information about a MeshWeaver peer."""
 
-    def __init__(self, host, port):
-        self.node_id = generate_node_id()
+    def __init__(self, host, port, node_id=None):
+        self.node_id = node_id or generate_node_id()
         self.host = host
         self.port = port
 
